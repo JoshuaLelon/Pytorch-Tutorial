@@ -1,5 +1,5 @@
 
-# PyTorch With Baby Steps: From y = x To Training A Convolutional Neural Network
+[Take me to the github!](https://github.com/joshualmitchell/Pytorch-Tutorial)
 
 [Take me to the outline!](#outline)
 
@@ -21,15 +21,15 @@ network architecture, batch normalization, vanishing gradients, dropout, initial
 
 2) [Basic Linear Regression Model](#two): create a basic linear regression model (i.e. no training or anything yet; just initializing it and doing the calculation)
 
-3) [Calculate Loss](#three): calculate our (linear regression) model's loss using a loss function
+3) [Calculating Our Gradient](#three): calculate our gradient based on the linear layer
 
-4) [Calculating Our Gradient](#four): calculate our gradient based on the previous loss function
+4) [Calculating Our Loss](#four): calculate our loss based on the linear layer
 
-5) [Recalculating/Updating Our Weights](#five): calculate the change in our weights based on the gradient and updating them
+5) [Recalculating/Updating Our Weights](#five): calculate the change in our weights based on the gradient wrt loss
 
 6) [Updating Our Weights More Than Once](#six): set up a for loop to do steps 3-5 an arbitrary number of times (i.e. epochs)
 
-7) [Making Our Epochs Only Use A Subset Of The Data](#seven): make the for loop only use a portion of the data (i.e. a batch)
+7) [Making Our Epochs Only Use A Subset Of The Data](#seven): make the for loop only use a portion of the data (i.e. a minibatch)
 
 8) [Changing Our Model from Linear Regression to Neural Network](#eight): make it fit the data better
 
@@ -97,7 +97,7 @@ print("----------------------------------------")
     ----------------------------------------
     1.0
     ----------------------------------------
-
+    
 
 
 ```python
@@ -134,7 +134,7 @@ print("----------------------------------------")
     [torch.FloatTensor of size 2]
     
     ----------------------------------------
-
+    
 
 
 ```python
@@ -181,7 +181,7 @@ print("----------------------------------------")
     [torch.FloatTensor of size 4]
     
     ----------------------------------------
-
+    
 
 ### Bare Minimum Model (y = x)
 
@@ -205,7 +205,7 @@ print("----------------------------------------")
     [torch.FloatTensor of size 4]
     
     ----------------------------------------
-
+    
 
 
 ```python
@@ -227,7 +227,7 @@ print("----------------------------------------")
     [torch.FloatTensor of size 4]
     
     ----------------------------------------
-
+    
 
 <a id='two'></a>
 
@@ -264,11 +264,63 @@ print("----------------------------------------")
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
-
+    
 
 <a id='three'></a>
 
-# 3)  Calculating The Loss Function 
+# 3)  Calculating Our Gradient (of our linear layer wrt our input) 
+
+Links:
+- http://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html - pytorch's automatic gradient package
+- https://discuss.pytorch.org/t/how-the-backward-works-for-torch-variable/907/3 - good discussion on pytorch forums
+- https://www.khanacademy.org/math/multivariable-calculus/multivariable-derivatives/gradient-and-directional-derivatives/v/gradient - Khan Academy
+- https://www.google.com/search?q=Machine+Learning+Gradient+Examples - More Examples
+
+#### [Home](#outline)  |   [Back](#two)  |   [Next](#four)
+
+
+```python
+x1 = torch.Tensor([1, 2, 3, 4])
+x1_var = Variable(x1, requires_grad=True)
+
+linear_layer1 = nn.Linear(4, 1)
+
+target_y = Variable(torch.Tensor([0]), requires_grad=False)
+
+predicted_y = linear_layer1(x1_var)
+
+# at this point, we want the gradient of our linear layer with respect to our original input, x
+# the Variable object we put our Tensor in is supposed to store its respective gradients, so let's look:
+
+print("----------------------------------------")
+print(x1_var.grad)
+print("----------------------------------------")
+
+# this prints None, because we haven't computed any gradients yet.
+# we have to call the backward() function from our predicted results in order to compute gradients with respect to x
+
+predicted_y.backward()
+print(x1_var.grad)
+print("----------------------------------------")
+# This is the gradient Tensor that holds the partial derivatives of our linear function with respect to each entry in x1
+```
+
+    ----------------------------------------
+    None
+    ----------------------------------------
+    Variable containing:
+    -0.0225
+     0.4638
+     0.3847
+     0.0056
+    [torch.FloatTensor of size 4]
+    
+    ----------------------------------------
+    
+
+<a id='four'></a>
+
+# 4)  Calculating The Loss Function 
 
 Links:
 - https://stackoverflow.com/questions/42877989/what-is-a-loss-function-in-simple-words - good SO post
@@ -277,7 +329,7 @@ Links:
 - https://www.google.com/search?q=Loss+Function+Examples - More Examples
 
 
-#### [Home](#outline)  |   [Back](#two)  |   [Next](#four)
+#### [Home](#outline)  |   [Back](#three)  |   [Next](#five)
 
 
 ```python
@@ -311,77 +363,21 @@ print("----------------------------------------")
 
     ----------------------------------------
     Variable containing:
-    -0.2311
+     0.1232
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
     Variable containing:
     1.00000e-02 *
-      5.3404
+      1.5189
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
-
-
-<a id='four'></a>
-
-# 4)  Calculating Our Gradient (based on the loss function) 
-
-Links:
-- http://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html - pytorch's automatic gradient package
-- https://discuss.pytorch.org/t/how-the-backward-works-for-torch-variable/907/3 - good discussion on pytorch forums
-- https://www.khanacademy.org/math/multivariable-calculus/multivariable-derivatives/gradient-and-directional-derivatives/v/gradient - Khan Academy
-- https://www.google.com/search?q=Machine+Learning+Gradient+Examples - More Examples
-
-#### [Home](#outline)  |   [Back](#three)  |   [Next](#five)
-
-
-```python
-x1 = torch.Tensor([1, 2, 3, 4])
-x1_var = Variable(x1, requires_grad=True)
-
-linear_layer1 = nn.Linear(4, 1)
-
-target_y = Variable(torch.Tensor([0]), requires_grad=False)
-
-predicted_y = linear_layer1(x1_var)
-
-loss_function = nn.MSELoss()
-
-loss = loss_function(predicted_y, target_y)
-
-# at this point, we want the gradient of our loss function with respect to our original input, x
-# the Variable object we put our Tensor in is supposed to store its respective gradients, so let's look:
-
-print("----------------------------------------")
-print(x1_var.grad)
-print("----------------------------------------")
-
-# this prints None, because we haven't computed any gradients yet.
-# we have to call the backward() function from our loss results in order to compute gradients with respect to x
-
-loss.backward()
-print(x1_var.grad)
-print("----------------------------------------")
-# This is the gradient Tensor that holds the partial derivatives of our loss function with respect to each entry in x1
-```
-
-    ----------------------------------------
-    None
-    ----------------------------------------
-    Variable containing:
-    -0.7361
-    -1.0644
-     1.4180
-     1.2542
-    [torch.FloatTensor of size 4]
     
-    ----------------------------------------
-
 
 <a id='five'></a>
 
-# 5)  Recalculating/Updating Our Weights (based on the gradient) 
+# 5)  Recalculating/Updating Our Weights (using gradient of loss wrt weights) 
 
 Links:
 - http://pytorch.org/docs/master/optim.html - optimizer package documentation
@@ -390,6 +386,9 @@ Links:
 
 
 ```python
+# Now, instead of calculating the gradient of our linear layer wrt our inputs (x) in lesson 3,
+# we're going to calculate the gradient of our loss function wrt our weights / biases
+
 x1 = torch.Tensor([1, 2, 3, 4])
 x1_var = Variable(x1, requires_grad=True)
 
@@ -446,37 +445,37 @@ print("----------------------------------------")
     ----------------------------------------
     Weights (before update):
     Parameter containing:
-     0.1946  0.4250 -0.4268  0.2506
+    -0.3612  0.1091 -0.4919  0.0260
     [torch.FloatTensor of size 1x4]
     
     Parameter containing:
-    -0.1696
+    -0.2044
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
     Output (before update):
     Variable containing:
-     0.5969
+    -1.7191
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
     Weights (after update):
     Parameter containing:
-     0.0752  0.1862 -0.7849 -0.2269
+    -0.0173  0.7968  0.5396  1.4012
     [torch.FloatTensor of size 1x4]
     
     Parameter containing:
-    -0.2890
+     0.1395
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
     Output (after update):
     Variable containing:
-    -3.1037
+     8.9394
     [torch.FloatTensor of size 1]
     
     ----------------------------------------
-
+    
 
 <a id='six'></a>
 
@@ -560,11 +559,11 @@ print("----------------------------------------")
     
     Should be getting closer to 0...
     ----------------------------------------
-
+    
 
 <a id='seven'></a>
 
-# 7)  Making Our Epochs Only Use A Subset Of The Data (i.e. a "batch") 
+# 7)  Making Our Epochs Only Use A Subset Of The Data (i.e. a "minibatch") 
 
 Links:
 - https://discuss.pytorch.org/t/zero-grad-optimizer-or-net/1887 - good discussion on pytorch forums
@@ -621,65 +620,65 @@ print("----------------------------------------")
     ----------------------------------------
     Output (UPDATE: Epoch #1, Batch #1):
     Variable containing:
-    -0.3699
-     0.1028
-     0.0181
-     0.2637
+     0.4019
+     0.0645
+     0.0391
+     0.1555
     [torch.FloatTensor of size 4x1]
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
     Output (UPDATE: Epoch #1, Batch #2):
     Variable containing:
-    -0.3698
-     0.1030
-     0.0184
-     0.2639
+     0.4020
+     0.0646
+     0.0393
+     0.1557
     [torch.FloatTensor of size 4x1]
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
     Output (UPDATE: Epoch #2, Batch #1):
     Variable containing:
-    -0.3695
-     0.1033
-     0.0186
-     0.2643
+     0.4021
+     0.0648
+     0.0394
+     0.1558
     [torch.FloatTensor of size 4x1]
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
     Output (UPDATE: Epoch #2, Batch #2):
     Variable containing:
-    -0.3694
-     0.1034
-     0.0188
-     0.2644
+     0.4022
+     0.0650
+     0.0397
+     0.1560
     [torch.FloatTensor of size 4x1]
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
     Output (UPDATE: Epoch #3, Batch #1):
     Variable containing:
-    -0.3691
-     0.1038
-     0.0191
-     0.2648
+     0.4023
+     0.0652
+     0.0398
+     0.1562
     [torch.FloatTensor of size 4x1]
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
     Output (UPDATE: Epoch #3, Batch #2):
     Variable containing:
-    -0.3690
-     0.1039
-     0.0193
-     0.2650
+     0.4024
+     0.0653
+     0.0400
+     0.1564
     [torch.FloatTensor of size 4x1]
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
-
+    
 
 <a id='eight'></a>
 
@@ -772,7 +771,7 @@ print("----------------------------------------")
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
-
+    
 
 <a id='nine'></a>
 
@@ -871,7 +870,7 @@ print("----------------------------------------")
     
     Should be getting closer to [0, 1, 1, 0]...
     ----------------------------------------
-
+    
 
 <a id='ten'></a>
 
@@ -928,10 +927,10 @@ print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
     Files already downloaded and verified
     Files already downloaded and verified
     horse  bird  deer truck
+    
 
 
-
-![png](pytorchtut_files/pytorchtut_62_1.png)
+![png](output_61_1.png)
 
 
 
@@ -975,7 +974,7 @@ for epoch in range(NUMBER_OF_EPOCHS):
     Iteration: 1
     Iteration: 2
     Iteration: 3
-
+    
 
 
 ```python
@@ -1015,10 +1014,10 @@ print('Accuracy of the network on the 10000 test images: %d %%' % (
     Predicted:    cat   car  ship plane
     GroundTruth:    cat  ship  ship plane
     Accuracy of the network on the 10000 test images: 39 %
+    
 
 
-
-![png](pytorchtut_files/pytorchtut_64_1.png)
+![png](output_63_1.png)
 
 
 <a id='eleven'></a>
@@ -1095,7 +1094,7 @@ for epoch in range(NUMBER_OF_EPOCHS):
     Iteration: 1
     Iteration: 2
     Iteration: 3
-
+    
 
 
 ```python
@@ -1115,10 +1114,10 @@ print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
     Predicted:    cat truck  ship  ship
     GroundTruth:    cat  ship  ship plane
+    
 
 
-
-![png](pytorchtut_files/pytorchtut_71_1.png)
+![png](output_70_1.png)
 
 
 
@@ -1139,7 +1138,7 @@ print('Accuracy of the network on the 10000 test images: %d %%' % (
 ```
 
     Accuracy of the network on the 10000 test images: 45 %
-
+    
 
 <a id='twelve'></a>
 
@@ -1215,7 +1214,7 @@ for epoch in range(NUMBER_OF_EPOCHS):
     Iteration: 1
     Iteration: 2
     Iteration: 3
-
+    
 
 
 ```python
@@ -1233,10 +1232,10 @@ print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
     Predicted:    cat   car  ship  ship
     GroundTruth:    cat  ship  ship plane
+    
 
 
-
-![png](pytorchtut_files/pytorchtut_79_1.png)
+![png](output_78_1.png)
 
 
 
@@ -1257,7 +1256,7 @@ print('Accuracy of the network on the 10000 test images: %d %%' % (
 ```
 
     Accuracy of the network on the 10000 test images: 45 %
-
+    
 
  <a id='thirteen'></a>
 
@@ -1339,7 +1338,7 @@ for epoch in range(NUMBER_OF_EPOCHS):
     Iteration: 11
     Iteration: 16
     Iteration: 21
-
+    
 
 
 ```python
@@ -1355,10 +1354,10 @@ print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
     Predicted:    cat  ship plane plane
     GroundTruth:    cat  ship  ship plane
+    
 
 
-
-![png](pytorchtut_files/pytorchtut_87_1.png)
+![png](output_86_1.png)
 
 
 
@@ -1380,7 +1379,7 @@ print('Accuracy of the network on the 10000 test images: %d %%' % (
 ```
 
     Accuracy of the network on the 10000 test images: 61 %
-
+    
 
  <a id='fourteen'></a>
 
@@ -1479,8 +1478,8 @@ print('Accuracy of the network on the 10000 test images: %d %%' % (
     Predicted:  truck   car plane plane
     GroundTruth:    cat  ship  ship plane
     Accuracy of the network on the 10000 test images: 62 %
+    
 
 
-
-![png](pytorchtut_files/pytorchtut_93_1.png)
+![png](output_92_1.png)
 
